@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brawler Counter - Live Search</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: white; text-align: center; padding: 20px; }
+        
+        .search-container { position: sticky; top: 0; background: #0f0f0f; padding: 10px 0; z-index: 100; }
+        
+        .search-box { 
+            padding: 15px; width: 90%; max-width: 500px; font-size: 18px; 
+            border-radius: 30px; border: 3px solid #ffcc00; background: #222; color: white;
+            outline: none; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+        }
+
+        #gallery { 
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            gap: 15px; max-width: 800px; margin: 20px auto; 
+        }
+
+        .card { background: #1a1a1a; padding: 10px; border-radius: 15px; border: 2px solid #333; animation: fadeIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        img { width: 100%; border-radius: 10px; border: 1px solid #444; }
+        
+        .brawler-label { color: #888; font-size: 12px; margin-bottom: 5px; display: block; }
+        
+        p { margin-top: 8px; font-size: 14px; color: #ffcc00; font-weight: bold; }
+        
+        .no-result { color: #555; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <h2 style="color: #ffcc00;">Brawler Counter Search</h2>
+        <input type="text" id="searchBox" class="search-box" placeholder="Am ya Bro type karein..." oninput="searchCounter()" autofocus>
+    </div>
+
+    <div id="gallery"></div>
+
+    <script>
+        // Aapka provide kiya hua Database
+        const countersData = {
+            "8-bit": ["Penny", "Brock", "Squeak"],
+            "alli": ["empty", "empty", "empty"],
+            "amber": ["Carl", "Pam", "Crow"],
+            "angelo": ["Max", "Nani", "Kit"],
+            "ash": ["Rosa", "Frank", "Bull"],
+            "barley": ["Mico", "Kenji", "Edgar"],
+            "bea": ["Sprout", "Mr. P", "Piper"],
+            "belle": ["Nani", "Piper", "Darryl"],
+            "berry": ["Mortis", "Kenji", "Barley"],
+            "bibi": ["Surge", "El Primo", "Shelly"],
+            "bo": ["Max", "Piper", "Stu"],
+            "bonnie": ["Piper", "Darryl", "R-T"],
+            "brock": ["Max", "Piper", "Nani"],
+            "bull": ["Nita", "Gale", "Griff"],
+            "buster": ["Rosa", "Jacky", "El Primo"],
+            "buzz": ["Surge", "Jacky", "Gale"],
+            "byron": ["Piper", "Lou", "Sprout"],
+            "carl": ["Buzz", "Darryl", "Gene"],
+            "charlie": ["Penny", "Barley", "Sandy"],
+            "chester": ["Janet", "Amber", "Stu"],
+            "chuck": ["Cordelius", "Clancy", "Bull"],
+            "clancy": ["Belle", "Tara", "Penny"],
+            "colette": ["Belle", "Griff", "Jessie"],
+            "colt": ["Piper", "Nani", "Gus"],
+            "cordelius": ["Frank", "Buster", "Surge"],
+            "crow": ["Piper", "Spike", "Darryl"],
+            "darryl": ["Cordelius", "Clancy", "Otis"],
+            "doug": ["Frank", "Griff", "Clancy"],
+            "draco": ["Nita", "Lou", "Frank"],
+            "dynamike": ["Mico", "Mortis", "Edgar"],
+            "edgar": ["Surge", "Doug", "Shelly"],
+            "el primo": ["Cordelius", "Gale", "Shelly"],
+            "emz": ["Mortis", "Barley", "Janet"],
+            "eve": ["Piper", "Penny", "Janet"],
+            "fang": ["Clancy", "Gale", "Otis"],
+            "finx": ["empty", "empty", "empty"],
+            "frank": ["Colette", "El Primo", "Griff"],
+            "gale": ["Janet", "Amber", "Penny"],
+            "gene": ["Mr. P", "Tara", "Belle"],
+            "gigi": ["empty", "empty", "empty"],
+            "gray": ["Mr. P", "Charlie", "Gus"],
+            "griff": ["Lola", "Stu", "Bea"],
+            "grom": ["Mico", "Kenji", "Mortis"],
+            "gus": ["Piper", "Mr. P", "Darryl"],
+            "hank": ["Dynamike", "Frank", "Gale"],
+            "jacky": ["Frank", "Rosa", "Gale"],
+            "jae-yong": ["empty", "empty", "empty"],
+            "janet": ["Carl", "Frank", "Kenji"],
+            "jessie": ["Belle", "Barley", "Squeak"],
+            "juju": ["Frank", "Griff", "Larry"],
+            "kaze": ["empty", "empty", "empty"],
+            "kenji": ["Frank", "El Primo", "Draco"],
+            "kit": ["Cordelius", "R-T", "Chester"],
+            "larry & lawrie": ["Kenji", "Tick", "Edgar"],
+            "leon": ["Pam", "Crow", "Pearl"],
+            "lily": ["Jacky", "R-T", "Bull"],
+            "lola": ["Belle", "Penny", "Amber"],
+            "lou": ["Bo", "Belle", "Poco"],
+            "lumi": ["empty", "empty", "empty"],
+            "maisie": ["Stu", "Barley", "Penny"],
+            "mandy": ["Tick", "Nani", "Mortis"],
+            "max": ["Gus", "Crow", "Pam"],
+            "meg": ["Lou", "Colette", "Lola"],
+            "meeple": ["empty", "empty", "empty"],
+            "melodie": ["Cordelius", "Clancy", "Buzz"],
+            "mico": ["Bull", "R-T", "Stu"],
+            "mina": ["empty", "empty", "empty"],
+            "moe": ["Darryl", "Penny", "Lou"],
+            "mortis": ["Shelly", "Jacky", "Gale"],
+            "mr. p": ["Mortis", "Edgar", "Bibi"],
+            "nani": ["Max", "Sandy", "Darryl"],
+            "najia": ["empty", "empty", "empty"],
+            "nita": ["Griff", "Barley", "Spike"],
+            "ollie": ["empty", "empty", "empty"],
+            "otis": ["Amber", "Stu", "Juju"],
+            "pam": ["Jessie", "Lou", "8-Bit"],
+            "pearl": ["Buster", "Lou", "8-Bit"],
+            "penny": ["Barley", "Squeak", "Bo"],
+            "piper": ["Nani", "Kit", "Kenji"],
+            "poco": ["Emz", "Mortis", "Jessie"],
+            "pierce": ["empty", "empty", "empty"],
+            "r-t": ["Gus", "Bo", "Max"],
+            "rico": ["Brock", "Stu", "Sprout"],
+            "rosa": ["Shelly", "Emz", "Frank"],
+            "ruffs": ["Buzz", "Carl", "Sprout"],
+            "sam": ["Surge", "Lou", "Griff"],
+            "sandy": ["Nita", "Lou", "Janet"],
+            "shade": ["Frank", "Lou", "Jacky"],
+            "shelly": ["Stu", "Nita", "Spike"],
+            "sirius": ["empty", "empty", "empty"],
+            "spike": ["Grom", "Squeak", "Carl"],
+            "sprout": ["Mico", "Mortis", "Frank"],
+            "squeak": ["Kenji", "Mortis", "Buzz"],
+            "stu": ["Poco", "Belle", "Ruffs"],
+            "surge": ["Tara", "Dynamike", "Ruffs"],
+            "tara": ["Sandy", "Janet", "Otis"],
+            "tick": ["Mico", "Mortis", "Darryl"],
+            "trunk": ["empty", "empty", "empty"],
+            "willow": ["Lou", "Buzz", "Barley"],
+            "ziggy": ["empty", "empty", "empty"]
+        };
+
+        function searchCounter() {
+            let input = document.getElementById("searchBox").value.toLowerCase().trim();
+            let gallery = document.getElementById("gallery");
+            gallery.innerHTML = "";
+
+            if (input.length < 1) return; // Khali hone par kuch mat dikhao
+
+            // Database mein se match hone wale brawlers dhoondo
+            for (let brawler in countersData) {
+                if (brawler.startsWith(input)) {
+                    // Match mil gaya! Ab uske counters dikhao
+                    countersData[brawler].forEach(name => {
+                        if (name !== "empty") {
+                            let div = document.createElement("div");
+                            div.className = "card";
+
+                            // Ye batayega ki ye kiska counter hai
+                            let label = document.createElement("span");
+                            label.className = "brawler-label";
+                            label.innerText = "Vs " + brawler.toUpperCase();
+
+                            let img = document.createElement("img");
+                            // Aapki file naming: amber_portrait.png
+                            let fileName = name.toLowerCase().replace(" ", "") + "_portrait.png";
+                            img.src = "./images/" + fileName;
+
+                            let p = document.createElement("p");
+                            p.innerText = name;
+
+                            img.onerror = function() {
+                                this.src = "https://via.placeholder.com/150?text=" + name;
+                            };
+
+                            div.appendChild(label);
+                            div.appendChild(img);
+                            div.appendChild(p);
+                            gallery.appendChild(div);
+                        }
+                    });
+                    
+                    // Ek match milne par loop rok sakte hain agar aapko sirf ek brawler ke 3 counters chahiye
+                    break; 
+                }
+            }
+        }
+    </script>
+</body>
+</html>
